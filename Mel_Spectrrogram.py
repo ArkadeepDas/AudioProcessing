@@ -31,4 +31,14 @@ mel_spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=SAMPLE_RATE,
 # Create the object of the AudioData class
 audio_data = AudioData(ANNOTATION_AUDIO, ANNOTATION_PATH)
 # Get the first data
-signal, label, metadata = audio_data[0]
+signal, label, sample_rate, metadata = audio_data[0]
+# Lets's apply the Mel Spectrogram
+signal = mel_spectrogram(signal)
+# Let's check the output and the shape
+print('Audio Signal: ', signal)
+print('Shape of audio signal: ', signal.shape)
+
+# Here we don't apply any normalization
+# Audio may be mono may be stereo, they have two channels or more
+# So after loading we mix it down to mono
+# Sample rate of all the data must be equal

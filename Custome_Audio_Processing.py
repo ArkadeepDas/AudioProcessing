@@ -42,7 +42,7 @@ class AudioData(Dataset):
         # It returns two values as tuples -> 1) wavefrom(tensor) 2) sample rate(int)
         signal, sample_rate = torchaudio.load(audio_sample_path)
         metadata = torchaudio.info(audio_sample_path)
-        return signal, label, metadata
+        return signal, sample_rate, label, metadata
 
 
 # Let's test the Class
@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     # Let's check how many data's are present in the dataset
     print(f'There are {len(audio_data)} samples in dataset.')
-    signal, label, metadata = audio_data[0]
+    signal, label, sample_rate, metadata = audio_data[0]
     print('Audio file: ', signal)
     print('Shape of the audio file: ', signal.shape)
     print('Audio label', label)
