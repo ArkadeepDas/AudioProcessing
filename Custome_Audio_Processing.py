@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     # Let's check how many data's are present in the dataset
     print(f'There are {len(audio_data)} samples in dataset.')
-    signal, label, sample_rate, metadata = audio_data[0]
+    signal, sample_rate, label, metadata = audio_data[0]
     print('Audio file: ', signal)
     print('Shape of the audio file: ', signal.shape)
     print('Audio label', label)

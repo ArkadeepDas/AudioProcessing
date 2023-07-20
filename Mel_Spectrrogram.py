@@ -9,13 +9,37 @@
 
 import torchaudio
 from Custome_Audio_Processing import AudioData
+import torch
 
 # Data set paths
 ANNOTATION_AUDIO = r'D:\Deep_Learning\Algorithm\Audio_Processing\cv-corpus-14.0-delta-2023-06-23\en\clips'
 ANNOTATION_PATH = r'D:\Deep_Learning\Algorithm\Audio_Processing\cv-corpus-14.0-delta-2023-06-23\en\train.tsv'
 
+# Create the object of the AudioData class
+audio_data = AudioData(ANNOTATION_AUDIO, ANNOTATION_PATH)
+# Get the first data
+signal, sample_rate, label, metadata = audio_data[0]
+
 # Number of samples(or data points) taken per second to represent and analog audio to it's digital form
 SAMPLE_RATE = 16000
+
+# Here we don't apply any normalization
+# Audio may be mono may be stereo, they have two channels or more
+# So after loading we mix it down to mono
+# Sample rate of all the data must be equal
+# For resampling the audio from one sample rate to another
+
+# We apply only when original sample rate is different from target sample rate
+resampler = torchaudio.transforms.Resample(sample_rate, SAMPLE_RATE)
+# Let's apply the resampling transformation
+signal = resampler(signal)
+
+# Let's mixdown to mono to mono
+# What we want to do is aggregating multiple channels and mix them down to a single channel
+# Using mean operation we aggregate them. Aggregrate them using number of channels
+# signal -> (num_channels, samples) -> (2, 16000) Convert to -> (1, 16000)
+signal = torch.mean(signal, dim=0, keepdim=True)
+
 # Let's create a Mel Spectrogram transformation
 # n_fft = number of points used for each sort-time furier transform
 # hop_length = number of overlap between adjacent frames
@@ -28,17 +52,8 @@ mel_spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=SAMPLE_RATE,
                                                        hop_length=512,
                                                        n_mels=64)
 
-# Create the object of the AudioData class
-audio_data = AudioData(ANNOTATION_AUDIO, ANNOTATION_PATH)
-# Get the first data
-signal, label, sample_rate, metadata = audio_data[0]
 # Lets's apply the Mel Spectrogram
 signal = mel_spectrogram(signal)
 # Let's check the output and the shape
 print('Audio Signal: ', signal)
 print('Shape of audio signal: ', signal.shape)
-
-# Here we don't apply any normalization
-# Audio may be mono may be stereo, they have two channels or more
-# So after loading we mix it down to mono
-# Sample rate of all the data must be equal
