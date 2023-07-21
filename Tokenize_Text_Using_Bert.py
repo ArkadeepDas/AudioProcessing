@@ -15,3 +15,19 @@ signal, sample_rate, label, metadata = audio_data[0]
 
 # Here we are working with text part. Label data is text data here. Let's understand the tokenization of text data.
 text = label
+print('Input signal: ', signal)
+print('Input sample rate: ', sample_rate)
+print('Label Text: ', text)
+
+# Let's load the Bert tokenizer
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
+# Tokenize the text
+tokens = tokenizer.tokenize(text)
+print('Converted text to single tokens: ')
+print(tokens)
+
+# Token every word token
+token_id = tokenizer.convert_tokens_to_ids(tokens)
+print('Tokenized text: ')
+print(token_id)
