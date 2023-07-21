@@ -70,14 +70,14 @@ class CNNNetwork(nn.Module):
         return output
 
 
-# # Let's test the model
-# def test():
-#     # Input image size is 256x256
-#     x = torch.randn((1, 1, 64, 44))
-#     model = CNNNetwork()
-#     pred = model(x)
-#     # We get the shape 30x30
-#     print(pred.shape)
+# Let's test the model
+def test():
+    # Input data
+    x = torch.randn((1, 1, 64, 44))
+    model = CNNNetwork()
+    pred = model(x)
+    print(pred.shape)
 
-# if __name__ == '__main__':
-#     test()
+
+if __name__ == '__main__':
+    test()
