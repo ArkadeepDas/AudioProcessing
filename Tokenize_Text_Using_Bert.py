@@ -31,3 +31,8 @@ print(tokens)
 token_id = tokenizer.convert_tokens_to_ids(tokens)
 print('Tokenized text: ')
 print(token_id)
+
+# Let's convert from token to string again
+decoded_text = tokenizer.decode(token_id)
+print('Token to text: ')
+print(decoded_text)
