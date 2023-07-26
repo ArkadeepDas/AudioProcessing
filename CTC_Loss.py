@@ -48,23 +48,21 @@ class CTCLossModel(nn.Module):
                                kernel_size=(3, 3),
                                padding=1)
         self.pool2 = nn.MaxPool2d(kernel_size=(2, 2))
-        self.flatten = nn.Flatten()
-        # Check the shape from the previous layer and set the input features in linear layer
-        self.linear = nn.Linear(in_features=1048576, out_features=64)
-        self.lstm = nn.LSTM(input_size=64, hidden_size=128, num_layers=2)
-        self.output = nn.Linear(in_features=128,
+        self.lstm = nn.LSTM(input_size=16384, hidden_size=256, num_layers=2)
+        self.output = nn.Linear(in_features=16384,
                                 out_features=number_of_character)
+        self.flatten = nn.Flatten()
 
     def forward(self, x):
         x = self.conv1(x)
         x = self.pool1(x)
         x = self.conv2(x)
         x = self.pool2(x)
-        x = self.flatten(x)
-        x = self.linear(x)
+        x = x.reshape(x.shape[0], x.shape[1], x.shape[2] * x.shape[2])
         x, _ = self.lstm(x)
+        x = self.flatten(x)
         x = self.output(x)
-        print('Shape after LSTM layers: ', x.size())
+        print(x.size())
 
 
 ctc_loss_model = CTCLossModel(115)
