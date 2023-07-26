@@ -2,6 +2,7 @@
 import torch
 import pandas as pd
 import torch.nn as nn
+from torch.nn import functional
 
 # Let's read a text data and capture the text
 data = pd.read_csv(
@@ -62,9 +63,17 @@ class CTCLossModel(nn.Module):
         x, _ = self.lstm(x)
         x = self.flatten(x)
         x = self.output(x)
-        print(x.size())
+        return x
 
 
 ctc_loss_model = CTCLossModel(115)
 data = torch.randn((1, 3, 512, 512))
-ctc_loss_model(data)
+output = ctc_loss_model(data)
+
+# CTC Loss
+ctc_loss = nn.CTCLoss()
+outputs = 'Log probability from the model for each time step (Batch size x Number of classes)'
+targets = 'Ground truth label: (Maximum number of Character, Batch size)'
+input_lenghths = 'We can think of it in different way, it if our input (Batchsize, Embedding, Features), then it will calculate that much embedding size. Suppose input is (4, 5, 10) -> input_lengths = [5, 5, 5, 5]'
+target_lengths = 'Length of each target data. The characters of two sentences are: ([1, 2, 3, 4, 5],[2, 3]) : target_lengths -> [5,2]'
+loss = ctc_loss(outputs, targets, input_lenghths, target_lengths)
