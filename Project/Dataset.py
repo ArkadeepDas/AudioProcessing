@@ -31,6 +31,7 @@ class AudioData(Dataset):
     def _mix_down_audio_data(self, audio_data):
         if audio_data.shape[0] > 1:
             audio_data = torch.mean(audio_data, dim=0, keepdim=True)
+        return audio_data
 
     # Return total data length
     def __len__(self):
@@ -44,6 +45,7 @@ class AudioData(Dataset):
         audio, sample_rate = torchaudio.load(audio_data)
         audio = self._sample_audio_data(audio_data=audio,
                                         sample_rate=sample_rate)
+        audio = self._mix_down_audio_data(audio_data=audio)
         text_data = self.annotations['sentence'][index]
 
         return
