@@ -19,8 +19,12 @@ class AudioData(Dataset):
         return file_name
 
     # Sample audio data if require
-    def _sample_audio_data(self, audio_data):
-        pass
+    def _sample_audio_data(self, audio_data, sample_rate):
+        if sample_rate < SAMPLE_RATE:
+            resampler = torchaudio.transforms.Resample(sample_rate,
+                                                       SAMPLE_RATE)
+            audio_data = resampler(audio_data)
+        return audio_data
 
     # Return total data length
     def __len__(self):
@@ -29,8 +33,11 @@ class AudioData(Dataset):
     # Capture datas
     def __getitem__(self, index):
         # Get audio data
-        audio_data = audio_sample_path = self.audio_path + '\\' + self._audio_sample_name(
-            index)
+        audio_data = self.audio_path + '\\' + self._audio_sample_name(
+            index=index)
+        audio, sample_rate = torchaudio.load(audio_data)
+        audio = self._sample_audio_data(audio_data=audio,
+                                        sample_rate=sample_rate)
         text_data = self.annotations['sentence'][index]
 
         return
