@@ -1,4 +1,5 @@
 # Here we are goung to create class to handle our dataset
+import torch
 import torchaudio
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
@@ -25,6 +26,11 @@ class AudioData(Dataset):
                                                        SAMPLE_RATE)
             audio_data = resampler(audio_data)
         return audio_data
+
+    # Mix down to Mono channels
+    def _mix_down_audio_data(self, audio_data):
+        if audio_data.shape[0] > 1:
+            audio_data = torch.mean(audio_data, dim=0, keepdim=True)
 
     # Return total data length
     def __len__(self):
