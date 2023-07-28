@@ -1,7 +1,8 @@
 # In this file we are going to train our model
 
-import json
 import torch
+import json
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from Dataset import AudioTextData
 from Audio_to_Text_Model import Audio_To_Text_Model
@@ -37,8 +38,32 @@ validation_loader = DataLoader(dataset=validation_data,
                                batch_size=BATCH_SIZE,
                                shuffle=True)
 
-# # Let's train the model
-# for epoch in range(EPOCHS):
-#     loop = tqdm(train_loader, leave=True)
-#     for idx, (x, y) in enumerate(loop):
-#         x, y = x.to(device), y.to(device)
+# Load model
+model = Audio_To_Text_Model()
+# Set model to training mode
+model.train()
+model.to(device=device)
+# Define the cost function
+ctc_loss = nn.CTCLoss()
+
+# Let's train the model
+for epoch in range(EPOCHS):
+    loop = tqdm(train_loader, leave=True)
+    for idx, (x, y) in enumerate(loop):
+        x, y = x.to(device), y.to(device)
+        # Pass data to model
+        y_pred = model(x)
+        print(y.shape)
+        print(y_pred.shape)
+        # Let's calculate the parameters for CTCLoss
+        input_lengths = torch.full(size=(16, ),
+                                   fill_value=115,
+                                   dtype=torch.long)
+        target_lengths = torch.randint(low=1,
+                                       high=115,
+                                       size=(16, ),
+                                       dtype=torch.long)
+        print(input_lengths.shape)
+        print(target_lengths.shape)
+        # Let's calculate the loss
+        loss = ctc_loss(y_pred, y, input_lengths, target_lengths)

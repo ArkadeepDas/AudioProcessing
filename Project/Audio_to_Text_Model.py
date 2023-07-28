@@ -80,7 +80,7 @@ class Audio_To_Text_Model(nn.Module):
         self.cnnblock_1 = CNNBlock(in_channels=1, out_channels=8)
         self.cnnblock_2 = CNNBlock(in_channels=16, out_channels=32)
         self.cnnblock_3 = CNNBlock(in_channels=64, out_channels=128)
-        self.lstmblock = LSTMBlock(input_size=4072, number_of_classes=115)
+        self.lstmblock = LSTMBlock(input_size=3632, number_of_classes=115)
 
     def forward(self, x):
         x = self.cnnblock_1(x)
@@ -91,7 +91,7 @@ class Audio_To_Text_Model(nn.Module):
         return x
 
 # Testing Model
-data = torch.randn((1, 1, 64, 4073))
+data = torch.randn((1, 1, 64, 3632))
 model = Audio_To_Text_Model()
 model.eval()
 output = model(data)
