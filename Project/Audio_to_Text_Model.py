@@ -17,12 +17,12 @@ class CNNBlock(nn.Module):
                                out_channels=out_channels,
                                kernel_size=3,
                                padding=1)
-        self.batch_norm_1 = nn.BatchNorm2d(num_features=32)
-        self.cnn_2 = nn.Conv2d(in_channels=32,
+        self.batch_norm_1 = nn.BatchNorm2d(num_features=out_channels)
+        self.cnn_2 = nn.Conv2d(in_channels=out_channels,
                                out_channels=out_channels * 2,
                                kernel_size=3,
                                padding=1)
-        self.batch_norm_2 = nn.BatchNorm2d(num_features=64)
+        self.batch_norm_2 = nn.BatchNorm2d(num_features=out_channels * 2)
         self.relu = nn.ReLU()
         self.maxpooling = nn.MaxPool2d(kernel_size=2, stride=2)
 
@@ -40,10 +40,12 @@ class CNNBlock(nn.Module):
 # Let's create LSTM and Linear block
 class LSTMBlock(nn.Module):
 
-    def __init__(self, number_of_classes=115):
+    def __init__(self, input_size, number_of_classes=115):
         super().__init__()
-        self.lstm = nn.LSTM(input_size=0, hidden_size=128, num_layers=4)
-        self.linear_1 = nn.Linear(in_features=128, out_features=256)
+        self.lstm = nn.LSTM(input_size=input_size,
+                            hidden_size=128,
+                            num_layers=4)
+        self.linear_1 = nn.Linear(in_features=32768, out_features=256)
         self.linear_2 = nn.Linear(in_features=256, out_features=512)
         self.linear_3 = nn.Linear(in_features=512, out_features=256)
         self.linear_4 = nn.Linear(in_features=256,
@@ -55,7 +57,7 @@ class LSTMBlock(nn.Module):
         self.flatten = nn.Flatten()
 
     def forward(self, x):
-        x = self.lstm(x)
+        x, _ = self.lstm(x)
         x = self.flatten(x)
         x = self.linear_1(x)
         x = self.batch_norm_1(x)
@@ -70,17 +72,27 @@ class LSTMBlock(nn.Module):
         return x
 
 
-# class Audio_To_Text_Model(nn.Module):
+# Let's get together and create the model
+class Audio_To_Text_Model(nn.Module):
 
-#     def __init__(self):
-#         super().__init__()
-#         self.cnnblock_1 = CNNBlock(in_channels=1, out_channels=32)
-#         self.cnnblock_2 = CNNBlock(in_channels=64, out_channels=)
+    def __init__(self):
+        super().__init__()
+        self.cnnblock_1 = CNNBlock(in_channels=1, out_channels=8)
+        self.cnnblock_2 = CNNBlock(in_channels=16, out_channels=32)
+        self.cnnblock_3 = CNNBlock(in_channels=64, out_channels=128)
+        self.lstmblock = LSTMBlock(input_size=4072, number_of_classes=115)
+
+    def forward(self, x):
+        x = self.cnnblock_1(x)
+        x = self.cnnblock_2(x)
+        x = self.cnnblock_3(x)
+        x = x.reshape(x.shape[0], x.shape[1], x.shape[2] * x.shape[3])
+        x = self.lstmblock(x)
+        return x
 
 
 # data = torch.randn((1, 1, 64, 4073))
-# model = CNNBlock(in_channels=1)
+# model = Audio_To_Text_Model()
+# model.eval()
 # output = model(data)
-# output = model(output)
-# output = model(output)
 # print(output.shape)
