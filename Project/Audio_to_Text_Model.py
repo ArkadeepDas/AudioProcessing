@@ -90,9 +90,10 @@ class Audio_To_Text_Model(nn.Module):
         x = self.lstmblock(x)
         return x
 
-
-# data = torch.randn((1, 1, 64, 4073))
-# model = Audio_To_Text_Model()
-# model.eval()
-# output = model(data)
-# print(output.shape)
+# Testing Model
+data = torch.randn((1, 1, 64, 4073))
+model = Audio_To_Text_Model()
+model.eval()
+output = model(data)
+print(output.shape)
+print('...!Working!...')
