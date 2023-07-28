@@ -48,7 +48,7 @@ class AudioTextData(Dataset):
     def _padding_rightside_audio(self, audio_data):
         if audio_data.shape[1] < self.config['MaximumAudioSampleLength']:
             num_missing_samples = self.config[
-                'MaximumAudioSampleLength'] - audio_data.shape[0]
+                'MaximumAudioSampleLength'] - audio_data.shape[1]
             last_dim_padding = (0, num_missing_samples)
             audio_data = torch.nn.functional.pad(audio_data, last_dim_padding)
         return audio_data
