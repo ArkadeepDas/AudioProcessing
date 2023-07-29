@@ -112,7 +112,7 @@ ANNOTATION_PATH = r'D:\Deep_Learning\Algorithm\Audio_Processing\cv-corpus-14.0-d
 audiotextdata = AudioTextData(Audio_Path=ANNOTATION_AUDIO,
                               Label_Path=ANNOTATION_PATH,
                               config=config)
-audio, label = audiotextdata[0]
+audio, label = audiotextdata[2]
 print('Audio file: ', audio)
 print('Shape of the audio file: ', audio.shape)
 print('Audio label', label)

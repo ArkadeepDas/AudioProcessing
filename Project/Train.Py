@@ -15,7 +15,7 @@ config = json.load(json_file)
 # Batch Size
 BATCH_SIZE = 16
 EPOCHS = 1
-
+LEARNING_RATE = 2e-4
 # Let's check the device for cuda
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
@@ -43,8 +43,10 @@ model = Audio_To_Text_Model()
 # Set model to training mode
 model.train()
 model.to(device=device)
+# Initialize optimizer
+optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 # Define the cost function
-ctc_loss = nn.CTCLoss()
+ctc_loss = nn.CTCLoss(blank=0)
 
 # Let's train the model
 for epoch in range(EPOCHS):
@@ -53,17 +55,18 @@ for epoch in range(EPOCHS):
         x, y = x.to(device), y.to(device)
         # Pass data to model
         y_pred = model(x)
-        print(y.shape)
-        print(y_pred.shape)
+        y_pred = y_pred.permute(1, 0,
+                                2).log_softmax(2).detach().requires_grad_()
         # Let's calculate the parameters for CTCLoss
-        input_lengths = torch.full(size=(16, ),
-                                   fill_value=115,
-                                   dtype=torch.long)
-        target_lengths = torch.randint(low=1,
-                                       high=115,
-                                       size=(16, ),
-                                       dtype=torch.long)
-        print(input_lengths.shape)
-        print(target_lengths.shape)
+        input_lengths = torch.full(size=(BATCH_SIZE, ),
+                                   fill_value=y_pred.size(0),
+                                   dtype=torch.int32)
+        target_lengths = torch.full(size=(BATCH_SIZE, ),
+                                    fill_value=y.size(1),
+                                    dtype=torch.int32)
         # Let's calculate the loss
         loss = ctc_loss(y_pred, y, input_lengths, target_lengths)
+        print('\n', loss.item())
+        model.zero_grad()
+        loss.backward()
+        optimizer.step()

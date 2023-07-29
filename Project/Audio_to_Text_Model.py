@@ -45,20 +45,19 @@ class LSTMBlock(nn.Module):
         self.lstm = nn.LSTM(input_size=input_size,
                             hidden_size=128,
                             num_layers=4)
-        self.linear_1 = nn.Linear(in_features=32768, out_features=256)
+        self.linear_1 = nn.Linear(in_features=128, out_features=256)
         self.linear_2 = nn.Linear(in_features=256, out_features=512)
         self.linear_3 = nn.Linear(in_features=512, out_features=256)
         self.linear_4 = nn.Linear(in_features=256,
                                   out_features=number_of_classes)
         self.batch_norm_1 = nn.BatchNorm1d(256)
-        self.batch_norm_2 = nn.BatchNorm1d(512)
+        self.batch_norm_2 = nn.BatchNorm1d(256)
         self.batch_norm_3 = nn.BatchNorm1d(256)
         self.relu = nn.ReLU()
         self.flatten = nn.Flatten()
 
     def forward(self, x):
         x, _ = self.lstm(x)
-        x = self.flatten(x)
         x = self.linear_1(x)
         x = self.batch_norm_1(x)
         x = self.relu(x)
