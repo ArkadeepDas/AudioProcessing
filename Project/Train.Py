@@ -14,7 +14,7 @@ config = json.load(json_file)
 
 # Batch Size
 BATCH_SIZE = 16
-EPOCHS = 1
+EPOCHS = 100
 LEARNING_RATE = 2e-4
 # Let's check the device for cuda
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -55,8 +55,7 @@ for epoch in range(EPOCHS):
         x, y = x.to(device), y.to(device)
         # Pass data to model
         y_pred = model(x)
-        y_pred = y_pred.permute(1, 0,
-                                2).log_softmax(2).detach().requires_grad_()
+        y_pred = y_pred.permute(1, 0, 2).log_softmax(2).requires_grad_()
         # Let's calculate the parameters for CTCLoss
         input_lengths = torch.full(size=(BATCH_SIZE, ),
                                    fill_value=y_pred.size(0),
@@ -66,7 +65,7 @@ for epoch in range(EPOCHS):
                                     dtype=torch.int32)
         # Let's calculate the loss
         loss = ctc_loss(y_pred, y, input_lengths, target_lengths)
-        print('\n', loss.item())
-        model.zero_grad()
+        print('\nLoss: ', loss.item())
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
