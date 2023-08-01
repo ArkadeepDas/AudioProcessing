@@ -7,65 +7,79 @@ from torch.utils.data import DataLoader
 from Dataset import AudioTextData
 from Audio_to_Text_Model import Audio_To_Text_Model
 from tqdm import tqdm
+import util
 
-# Load json file
-json_file = open(r'data.json', 'r')
-config = json.load(json_file)
-
-# Batch Size
-BATCH_SIZE = 16
-EPOCHS = 100
-LEARNING_RATE = 2e-4
-# Let's check the device for cuda
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
-
-# Data paths
-ANNOTATION_AUDIO = r'D:\Deep_Learning\Algorithm\Audio_Processing\cv-corpus-14.0-delta-2023-06-23\en\clips'
-TRAIN_DATA_PATH = r'D:\Deep_Learning\Algorithm\Audio_Processing\cv-corpus-14.0-delta-2023-06-23\en\train.tsv'
-VALIDATION_DATA_PATH = r'D:\Deep_Learning\Algorithm\Audio_Processing\cv-corpus-14.0-delta-2023-06-23\en\validation.tsv'
 # Load data
-train_data = AudioTextData(Audio_Path=ANNOTATION_AUDIO,
-                           Label_Path=TRAIN_DATA_PATH,
-                           config=config)
-validation_data = AudioTextData(Audio_Path=ANNOTATION_AUDIO,
-                                Label_Path=VALIDATION_DATA_PATH,
-                                config=config)
+train_data = AudioTextData(Audio_Path=util.ANNOTATION_AUDIO,
+                           Label_Path=util.TRAIN_DATA_PATH,
+                           config=util.config)
+validation_data = AudioTextData(Audio_Path=util.ANNOTATION_AUDIO,
+                                Label_Path=util.VALIDATION_DATA_PATH,
+                                config=util.config)
 train_loader = DataLoader(dataset=train_data,
-                          batch_size=BATCH_SIZE,
+                          batch_size=util.BATCH_SIZE,
                           shuffle=True)
 validation_loader = DataLoader(dataset=validation_data,
-                               batch_size=BATCH_SIZE,
+                               batch_size=util.BATCH_SIZE,
                                shuffle=True)
 
 # Load model
 model = Audio_To_Text_Model()
-# Set model to training mode
-model.train()
-model.to(device=device)
+model.to(device=util.device)
 # Initialize optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+optimizer = torch.optim.Adam(model.parameters(), lr=util.LEARNING_RATE)
 # Define the cost function
 ctc_loss = nn.CTCLoss(blank=0)
 
 # Let's train the model
-for epoch in range(EPOCHS):
+for epoch in range(util.EPOCHS):
     loop = tqdm(train_loader, leave=True)
+    # Set model to training mode
+    model.train()
     for idx, (x, y) in enumerate(loop):
-        x, y = x.to(device), y.to(device)
+        x, y = x.to(util.device), y.to(util.device)
         # Pass data to model
         y_pred = model(x)
         y_pred = y_pred.permute(1, 0, 2).log_softmax(2).requires_grad_()
         # Let's calculate the parameters for CTCLoss
-        input_lengths = torch.full(size=(BATCH_SIZE, ),
+        input_lengths = torch.full(size=(y_pred.size(1), ),
                                    fill_value=y_pred.size(0),
                                    dtype=torch.int32)
-        target_lengths = torch.full(size=(BATCH_SIZE, ),
+        target_lengths = torch.full(size=(y.size(0), ),
                                     fill_value=y.size(1),
                                     dtype=torch.int32)
         # Let's calculate the loss
-        loss = ctc_loss(y_pred, y, input_lengths, target_lengths)
-        print('\nLoss: ', loss.item())
+        training_loss = ctc_loss(y_pred, y, input_lengths, target_lengths)
         optimizer.zero_grad()
-        loss.backward()
+        training_loss.backward()
         optimizer.step()
+
+    # Set model to validation mode
+    model.eval()
+    validation_loss = 0.0
+
+    with torch.no_grad():
+        for audio, label in validation_loader:
+            audio, label = audio.to(util.device), label.to(util.device)
+            prediction = model(audio)
+            prediction = prediction.permute(1, 0, 2).log_softmax(2)
+            in_lengths = torch.full(size=(prediction.size(1), ),
+                                    fill_value=prediction.size(0),
+                                    dtype=torch.int32)
+            tar_lengths = torch.full(size=(label.size(0), ),
+                                     fill_value=label.size(1),
+                                     dtype=torch.int32)
+            # Calculate the loss
+            loss = ctc_loss(prediction, label, in_lengths, tar_lengths)
+            validation_loss += loss.item()
+
+    # Average loss
+    validation_loss /= len(validation_loader)
+    # Let's check the losses
+    print(
+        f'Epoch : {epoch}/{util.EPOCHS} - Training Loss: {training_loss.item()} - Validation Loss: {validation_loss}'
+    )
+
+    if validation_loss < LOWEST_VALIDATION_LOSS:
+        LOWEST_VALIDATION_LOSS = validation_loss
+        util.save_checkpoint(model=model, optimizer=optimizer)
