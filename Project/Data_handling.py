@@ -35,6 +35,9 @@ for idx, character in enumerate(unique_characters):
     character_to_number[character] = idx + 1
     number_to_character[idx + 1] = character
 
+character_to_number[''] = 0
+number_to_character[0] = ''
+
 train_audio_files = train_data['path']
 test_audio_files = test_data['path']
 # Calculate maximum sample rate
