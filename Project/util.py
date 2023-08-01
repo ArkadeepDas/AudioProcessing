@@ -9,7 +9,6 @@ config = json.load(json_file)
 BATCH_SIZE = 16
 EPOCHS = 5
 LEARNING_RATE = 2e-4
-LOWEST_VALIDATION_LOSS = float('inf')
 # Let's check the device for cuda
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)

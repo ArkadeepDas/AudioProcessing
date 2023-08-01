@@ -9,6 +9,7 @@ from Audio_to_Text_Model import Audio_To_Text_Model
 from tqdm import tqdm
 import util
 
+LOWEST_VALIDATION_LOSS = float('inf')
 # Load data
 train_data = AudioTextData(Audio_Path=util.ANNOTATION_AUDIO,
                            Label_Path=util.TRAIN_DATA_PATH,
