@@ -6,6 +6,15 @@
 
 import torch
 import torch.nn as nn
+import json
+
+# Read json file
+json_file = open(r'data.json', 'r')
+config = json.load(json_file)
+character_to_number = config['Character_to_Number']
+number_to_character = config['Number_to_Character']
+
+CHARACTER_SET = len(character_to_number)
 
 
 # Let's create the convolution block
@@ -40,7 +49,7 @@ class CNNBlock(nn.Module):
 # Let's create LSTM and Linear block
 class LSTMBlock(nn.Module):
 
-    def __init__(self, input_size, number_of_classes=115):
+    def __init__(self, input_size, number_of_classes=CHARACTER_SET):
         super().__init__()
         self.lstm = nn.LSTM(input_size=input_size,
                             hidden_size=128,
@@ -79,7 +88,8 @@ class Audio_To_Text_Model(nn.Module):
         self.cnnblock_1 = CNNBlock(in_channels=1, out_channels=8)
         self.cnnblock_2 = CNNBlock(in_channels=16, out_channels=32)
         self.cnnblock_3 = CNNBlock(in_channels=64, out_channels=128)
-        self.lstmblock = LSTMBlock(input_size=3632, number_of_classes=115)
+        self.lstmblock = LSTMBlock(input_size=3632,
+                                   number_of_classes=CHARACTER_SET)
 
     def forward(self, x):
         x = self.cnnblock_1(x)
@@ -88,6 +98,7 @@ class Audio_To_Text_Model(nn.Module):
         x = x.reshape(x.shape[0], x.shape[1], x.shape[2] * x.shape[3])
         x = self.lstmblock(x)
         return x
+
 
 # Testing Model
 data = torch.randn((1, 1, 64, 3632))
